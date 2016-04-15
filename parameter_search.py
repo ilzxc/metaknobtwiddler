@@ -1,3 +1,4 @@
+#!/usr/bin/python
 """Performs bayesian parameter optimization using parameters described in
 params.py file and data in inputted csv file"""
 from __future__ import division
@@ -25,7 +26,7 @@ if __name__ == '__main__':
     model = 'general'
     if model == 'general':
         # Load data given csv file, statistics are stored in model
-        data = np.loadtxt(args.csv_path, dtype=object, delimiter=",")
+        data = np.loadtxt(args.csv_path, dtype='float32', delimiter=",")
 
         # Run parameter optimization forever
         bpo.parameter_search(data,
