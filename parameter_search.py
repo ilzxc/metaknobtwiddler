@@ -30,11 +30,8 @@ if __name__ == '__main__':
 
     model = 'general'
     if model == 'general':
-        # Load data given csv file
+        # Load data given csv file, statistics are stored in model
         data = np.loadtxt(args.csv_path, dtype=object, delimiter=",")
-
-        # Normalize data
-        data = (data - data.mean(axis=0)) / data.mean(axis=0)
 
         # Run parameter optimization forever
         bpo.parameter_search(data,
