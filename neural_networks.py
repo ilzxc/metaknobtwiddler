@@ -105,8 +105,8 @@ def train(data, layers, updates_fn, batch_size=64, epoch_size=128,
             yield epoch_result
 
 
-def build_general_network(input_shape, input_mean, input_std, n_layers, widths,
-                          non_linearities, drop_out=True):
+def build_general_network(input_shape, n_layers, widths, non_linearities,
+                          drop_out=True, input_mean=False, input_std=False):
     """
     Parameters
     ----------
@@ -119,8 +119,9 @@ def build_general_network(input_shape, input_mean, input_std, n_layers, widths,
     for i in range(n_layers):
         if i == 0:  # input layer
             layers = lasagne.layers.InputLayer(shape=input_shape)
-            layers.append(lasagne.layers.standardize(
-                layers[-1], input_mean, input_std, shared_axes=(0, 2)))
+            if input_mean is not False and input_std is not False:
+                layers.append(lasagne.layers.standardize(
+                    layers[-1], input_mean, input_std, shared_axes=(0, 2)))
         else:  # hidden and output layers
             layers.append(
                 lasagne.layers.DenseLayer(layers[-1],
