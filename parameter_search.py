@@ -1,7 +1,6 @@
 """Performs bayesian parameter optimization using parameters described in
 params.py file and data in inputted csv file"""
 from __future__ import division
-import os
 import argparse
 import numpy as np
 import neural_networks
@@ -23,11 +22,7 @@ if __name__ == '__main__':
         help="Path to CSV file with distance(first col) and features")
     args = parser.parse_args()
 
-    # Set model name based on csv file name
-    model_name = os.path.basename(args.csv_path)
-    model_name = model_name[:model_name.rfind('.')]
     model = 'general'
-
     if model == 'general':
         # Load data given csv file, statistics are stored in model
         data = np.loadtxt(args.csv_path, dtype=object, delimiter=",")
@@ -39,4 +34,4 @@ if __name__ == '__main__':
                              TRIAL_DIRECTORY,
                              MODEL_DIRECTORY,
                              neural_networks.train,
-                             model_name)
+                             model)
