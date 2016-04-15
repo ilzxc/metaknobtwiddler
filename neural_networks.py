@@ -126,8 +126,8 @@ def build_general_network(input_shape, n_layers, widths, non_linearities,
             layers.append(
                 lasagne.layers.DenseLayer(layers[-1],
                                           num_units=widths[i],
-                                          nonlinearity=non_linearities[i])
+                                          nonlinearity=non_linearities[i]))
             if drop_out and i < n_layers-1:  # output layer has no dropout
-                layers.append(lasagne.layers.DropoutLayer(layers[-1], p=0.5)
+                layers.append(lasagne.layers.DropoutLayer(layers[-1], p=0.5))
 
     return layers
