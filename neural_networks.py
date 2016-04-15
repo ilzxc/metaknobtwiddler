@@ -83,8 +83,8 @@ def train(data, layers, updates_fn, batch_size=64, epoch_size=128,
             cost = np.float(validate_fn(data['validate']['distance'],
                                         data['validate']['parameters']))
 
-            epoch_result['validate_cost'] = cost
-            epoch_result['validate_objective'] = cost
+            epoch_result['validate_cost'] = float(cost)
+            epoch_result['validate_objective'] = float(cost)
 
             # Test whether this validate cost is the new smallest
             if epoch_result['validate_cost'] < current_val_cost:
@@ -105,7 +105,7 @@ def train(data, layers, updates_fn, batch_size=64, epoch_size=128,
             yield epoch_result
 
 
-def build_general_network(input_shape, n_layers, widths,
+def build_general_network(input_shape, input_mean, input_std, n_layers, widths,
                           non_linearities, drop_out=True):
     """
     Parameters
@@ -119,11 +119,14 @@ def build_general_network(input_shape, n_layers, widths,
     for i in range(n_layers):
         if i == 0:  # input layer
             layers = lasagne.layers.InputLayer(shape=input_shape)
+            layers.append(lasagne.layers.standardize(
+                layers[-1], input_mean, input_std, shared_axes=(0, 2)))
         else:  # hidden and output layers
-            layers = lasagne.layers.DenseLayer(layers,
-                                               num_units=widths[i],
-                                               nonlinearity=non_linearities[i])
+            layers.append(
+                lasagne.layers.DenseLayer(layers[-1],
+                                          num_units=widths[i],
+                                          nonlinearity=non_linearities[i])
             if drop_out and i < n_layers-1:  # output layer has no dropout
-                layers = lasagne.layers.DropoutLayer(layers, p=0.5)
+                layers.append(lasagne.layers.DropoutLayer(layers[-1], p=0.5)
 
     return layers
