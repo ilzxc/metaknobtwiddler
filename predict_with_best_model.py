@@ -12,7 +12,7 @@ from theano import tensor as T
 import lasagne
 import deepdish
 import neural_networks
-from params import MODEL_DIRECTORY, RESULTS_DIRECTORY
+from params import RESULTS_DIRECTORY
 from params import nnet_params
 
 
