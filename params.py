@@ -1,9 +1,13 @@
 from __future__ import division
+import os
 import lasagne
 
-# random number seed
-rand_num_seed = 1
-n_params = 1
+n_params = 2
+
+# Paths
+RESULTS_DIRECTORY = 'results/'
+TRIAL_DIRECTORY = os.path.join(RESULTS_DIRECTORY, 'parameter_trials')
+MODEL_DIRECTORY = os.path.join(RESULTS_DIRECTORY, 'model')
 
 # neural network parameter not to be explored with bayesian parameter estimation
 nnet_params = {
