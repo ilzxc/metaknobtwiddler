@@ -61,8 +61,8 @@ def run_trial(data, nnet_params, hyperparameter_space, train_function):
     data = {'train': {'distance': data[train_ids, 0],
                       'parameters': data[train_ids, 1:]
                       },
-            'validate': {'distance': data['distance'][~train_ids, 0],
-                         'parameters': data['parameters'][~train_ids, 1:]
+            'validate': {'distance': data[~train_ids, 0],
+                         'parameters': data[~train_ids, 1:]
                          }
             }
 
@@ -71,13 +71,12 @@ def run_trial(data, nnet_params, hyperparameter_space, train_function):
     input_std = np.std(data['train']['parameters'], axis=0)
 
     # Build the neural network model
-    layers = build_network_layers(
-        (nnet_params['batch_size'], data['train']['parameters'].shape[1]),
-        input_mean, input_std,
-        nnet_params['n_layers'],
-        nnet_params['widths'],
-        nnet_params['non_linearities'],
-        drop_out=hyperparameter_space['dropout'])
+    layers = build_network_layers((nnet_params['batch_size'], 1),
+                                  nnet_params['n_layers'],
+                                  nnet_params['widths'],
+                                  nnet_params['non_linearities'],
+                                  hyperparameter_space['dropout'],
+                                  input_mean, input_std)
 
     # Generate updates-creating function
     updates_function = functools.partial(
