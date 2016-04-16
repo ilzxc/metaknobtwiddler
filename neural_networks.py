@@ -23,7 +23,7 @@ def train(data, layers, updates_fn, batch_size=64, epoch_size=128,
           patience_increase=5, max_iter=100000):
 
     # specify input and target theano data types
-    input_var = T.fvector('inputs')
+    input_var = T.matrix('inputs')
     target_var = T.matrix('targets')
 
     # create a cost expression for training
@@ -66,7 +66,7 @@ def train(data, layers, updates_fn, batch_size=64, epoch_size=128,
     train_cost = 0.0
 
     for n, (x_batch, y_batch) in enumerate(train_data_iter):
-        train_cost += train_fn(x_batch, y_batch)
+        train_cost += train_fn(x_batch.reshape(len(x_batch), 1), y_batch)
 
         # Stop training if NaN is encountered
         if not np.isfinite(train_cost):
@@ -80,8 +80,9 @@ def train(data, layers, updates_fn, batch_size=64, epoch_size=128,
                             'validate_objective': 0.0}
 
             # compute validation cost and objective
-            cost = np.float(validate_fn(data['validate']['distance'],
-                                        data['validate']['parameters']))
+            cost = np.float(validate_fn(
+                data['validate']['distance'].reshape((len(data['validate']['distance']), 1)),
+                data['validate']['parameters']))
 
             epoch_result['validate_cost'] = float(cost)
             epoch_result['validate_objective'] = float(cost)
@@ -119,15 +120,15 @@ def build_general_network(input_shape, n_layers, widths, non_linearities,
     for i in range(n_layers):
         if i == 0:  # input layer
             layers = lasagne.layers.InputLayer(shape=input_shape)
-            if input_mean is not False and input_std is not False:
-                layers.append(lasagne.layers.standardize(
-                    layers[-1], input_mean, input_std, shared_axes=(0, 2)))
+            # if input_mean is not False and input_std is not False:
+            #     layers = lasagne.layers.standardize(
+            #      layers, input_mean, input_std, shared_axes=(0, 2))
         else:  # hidden and output layers
-            layers.append(
-                lasagne.layers.DenseLayer(layers[-1],
-                                          num_units=widths[i],
-                                          nonlinearity=non_linearities[i]))
+            layers = lasagne.layers.DenseLayer(
+                layers,
+                num_units=widths[i],
+                nonlinearity=non_linearities[i])
             if drop_out and i < n_layers-1:  # output layer has no dropout
-                layers.append(lasagne.layers.DropoutLayer(layers[-1], p=0.5))
+                layers = lasagne.layers.DropoutLayer(layers, p=0.5)
 
     return layers
