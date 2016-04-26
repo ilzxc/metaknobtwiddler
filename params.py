@@ -14,14 +14,13 @@ nnet_params = {
     'general': {'n_layers': 4,
                 'batch_size': 16,
                 'epoch_size': 128,
-                'widths': [None, 1024, 1024, n_params],
+                'widths': [None, 4, 4, n_params],
                 'non_linearities': (None,
                                     lasagne.nonlinearities.rectify,
                                     lasagne.nonlinearities.rectify,
-                                    lasagne.nonlinearities.softmax),
+                                    lasagne.nonlinearities.rectify),
                 'update_func': lasagne.updates.adadelta
-                },
-
+                }
 }
 
 # hyperparameter space to be explored using bayesian parameter optimization
