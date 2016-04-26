@@ -2,8 +2,7 @@ import numpy as np
 import theano
 from theano import tensor as T
 import lasagne
-import matplotlib.pylab as plt
-import seaborn
+import pylab as plt
 
 
 def set_trace():
@@ -26,10 +25,26 @@ def train(data, layers, updates_fn, batch_size=64, epoch_size=128,
     input_var = T.matrix('inputs')
     target_var = T.matrix('targets')
 
+    # define Theano correlation function
+    x = T.fmatrix('data_centered')
+    y = T.fscalar('normalization')
+    corr_f = (T.dot(x, x.T.conj()) / y) / T.sqrt(
+        T.outer(T.diag(T.dot(x, x.T.conj()) / y),
+                T.diag(T.dot(x, x.T.conj()) / y)))
+    corr_t = theano.function([x, y], corr_f)
+
     # create a cost expression for training
     prediction = lasagne.layers.get_output(layers, input_var)
-    cost = lasagne.objectives.categorical_crossentropy(prediction, target_var)
-    cost = cost.mean()
+    mse = lasagne.objectives.squared_error(
+        prediction, target_var).mean()
+    set_trace()
+    prediction_corr = corr_t(prediction, prediction.shape[1]-1)
+    # target_corr = corr_t(target_var)
+    # change for more appropriate distance measures
+    # corr_mse = lasagne.objectives.squared_error(
+    #     prediction_corr, target_corr).mean()
+
+    cost = mse
 
     # create parameter update expressions for training
     params = lasagne.layers.get_all_params(layers, trainable=True)
@@ -45,9 +60,9 @@ def train(data, layers, updates_fn, batch_size=64, epoch_size=128,
     # deterministic forward pass to disable droupout layers
     val_prediction = lasagne.layers.get_output(layers, input_var,
                                                deterministic=True)
-    val_cost = lasagne.objectives.categorical_crossentropy(
-        val_prediction, target_var)
-    val_cost = val_cost.mean()
+
+    val_cost = lasagne.objectives.squared_error(
+        val_prediction, target_var).sum()
 
     # compile a function to compute the validation cost and objective function
     validate_fn = theano.function(inputs=[input_var, target_var],
@@ -81,8 +96,38 @@ def train(data, layers, updates_fn, batch_size=64, epoch_size=128,
 
             # compute validation cost and objective
             cost = np.float(validate_fn(
-                data['validate']['distance'].reshape((len(data['validate']['distance']), 1)),
+                data['validate']['distance'].reshape((
+                    len(data['validate']['distance']), 1)),
                 data['validate']['parameters']))
+
+            outs = val_output(data['validate']['distance'].reshape((
+                    len(data['validate']['distance']), 1)))
+
+            if cost < 400:
+                print '\ncorrelation'
+                print np.corrcoef(np.column_stack((data['validate']['distance'],
+                                                   outs)).T)
+
+                plt.figure(figsize=(12, 8))
+                plt.subplot(4, 1, 1)
+                plt.title('Param1')
+                plt.plot(data['validate']['parameters'][:, 0], 'g.')
+                plt.plot(outs[:, 0], 'r.')
+
+                plt.subplot(4, 1, 2)
+                plt.title('Absolute Differences Param 1')
+                plt.plot(data['validate']['parameters'][:, 0]-outs[:, 0], 'b.')
+
+                plt.subplot(4, 1, 3)
+                plt.title('Param2')
+                plt.plot(data['validate']['parameters'][:, 1], 'g.')
+                plt.plot(outs[:, 1], 'r.')
+
+                plt.subplot(4, 1, 4)
+                plt.title('Absolute Differences Param 1')
+                plt.plot(data['validate']['parameters'][:, 1]-outs[:, 1], 'b.')
+
+                plt.show()
 
             epoch_result['validate_cost'] = float(cost)
             epoch_result['validate_objective'] = float(cost)
